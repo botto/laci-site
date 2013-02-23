@@ -1,5 +1,5 @@
 {
-  "name": "application-name",
+  "name": "lacis-site",
   "version": "0.0.1",
   "private": true,
   "scripts": {
@@ -9,6 +9,21 @@
     "express": "3.1.0",
     "hjs": "*",
     "less-middleware": "*",
-    "ts3sq": "*"
-  }
+    "ts3sq": "*",
+    "nconf": "*"
+  },
+  "readmeFilename": "README.md",
+  "gitHead": "a578d91579488bf8389f3cfc526ee4f9ca2973f1",
+  "description": "lacis-site ==========",
+  "main": "app.js",
+  "devDependencies": {},
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/botto/lacis-site.git"
+  },
+  "keywords": [
+    "minecraft"
+  ],
+  "author": "Martin Eskdale Moen",
+  "license": "MIT"
 }
