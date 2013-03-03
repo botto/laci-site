@@ -1,29 +1,34 @@
 {
   "name": "lacis-site",
   "version": "0.0.1",
-  "private": true,
-  "scripts": {
-    "start": "node app"
-  },
-  "dependencies": {
-    "express": "3.1.0",
-    "hjs": "*",
-    "less-middleware": "*",
-    "ts3sq": "*",
-    "nconf": "*"
-  },
-  "readmeFilename": "README.md",
-  "gitHead": "a578d91579488bf8389f3cfc526ee4f9ca2973f1",
   "description": "lacis-site ==========",
   "main": "app.js",
+  "dependencies": {
+    "underscore": "~1.4.4",
+    "less-middleware": "~0.1.9",
+    "ts3sq": "~0.1.2",
+    "mongoose": "~3.5.7",
+    "express": "~3.1.0",
+    "passport-google": "~0.3.0",
+    "hjs": "~0.0.4",
+    "nconf": "~0.6.7",
+    "passport": "~0.1.16"
+  },
   "devDependencies": {},
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
   "repository": {
     "type": "git",
     "url": "git://github.com/botto/lacis-site.git"
   },
   "keywords": [
-    "minecraft"
+    "minecraft",
+    "teamspeak",
+    "games"
   ],
   "author": "Martin Eskdale Moen",
-  "license": "MIT"
+  "license": "BSD",
+  "readmeFilename": "README.md",
+  "gitHead": "a30dfaceb926b4fee73afe0a217671ddf4f39c71"
 }

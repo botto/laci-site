@@ -4,14 +4,19 @@
  */
 
 var express = require('express')
+  , util = require('util')
   , routes = require('./routes')
-  , user = require('./routes/user')
   , http = require('http')
   , path = require('path')
   , conf = require('nconf')
-  , auth = require('authom');
+  , db = require('mongoose')
+  , schemas = require('./lib/schemas')
+  , passport = require('passport')
+  , GoogleStrategy = require('passport-google').Strategy;
 
-//Lets set up conf
+/*
+ * CONFIG
+ */
 conf.argv().env();
 
 conf.file('config.json');
@@ -22,6 +27,44 @@ conf.defaults({
   'sqUser': 'serveradmin'
 });
 
+/*
+ * MODELS
+ */
+for (var model in schemas) {
+  if (schemas.hasOwnProperty(model)) {
+    db.model(model, new db.Schema(schemas[model]));
+  }
+}
+
+/*
+ * AUTH
+ */
+var loggedIn = function(req, res, next) {
+  if (req.isAuthenticated()) { return next(); }
+}
+
+passport.serializeUser(function(user, done) {
+  done(null, user);
+});
+
+passport.deserializeUser(function(obj, done) {
+  done(null, obj);
+});
+
+passport.use(new GoogleStrategy({
+    returnURL: 'http://local.lacis.org:3000/auth/google/return',
+    realm: 'http://local.lacis.org:3000/'
+  },
+  function (ident, profile, done) {
+    process.nextTick(function () {
+      return done(null, profile);
+    });
+  }
+));
+
+/*
+ * EXPRESS
+ */
 var app = express();
 
 app.configure(function(){
@@ -32,8 +75,10 @@ app.configure(function(){
   app.use(express.logger('dev'));
   app.use(express.bodyParser());
   app.use(express.methodOverride());
-  app.use(express.cookieParser(conf.sessionSeceret));
-  app.use(express.session());
+  app.use(express.cookieParser());
+  app.use(express.session({secret: conf.get('sessionSecret')}));
+  app.use(passport.initialize());
+  app.use(passport.session());
   app.use(app.router);
   app.use(require('less-middleware')({ src: __dirname + '/public' }));
   app.use(express.static(path.join(__dirname, 'public')));
@@ -43,26 +88,37 @@ app.configure('development', function(){
   app.use(express.errorHandler());
 });
 
-var gconf = conf.get('google');
+app.get('/auth/google',
+  passport.authenticate('google', {failureRedirect: '/'}),
+  function (req, res) {
+    //res.redirect('/dashboard');
+  }
+);
 
-auth.on('auth', function(req, res, data) {
-  res.send(JSON.stringify(data));
+app.get('/auth/google/return',
+  passport.authenticate('google', { failureRedirect: '/' }),
+  function(req, res) {
+    var userModel = db.model('user');
+    var guser = new userModel({gaccount: req.user.emails[0].value});
+    guser.save(function(err) {
+      if (err) {
+        console.log('oh noes');
+      }
+    });
+    //res.redirect('/dashboard');
+  }
+);
+
+app.get('/dashboard', loggedIn, function(req, res) {
+  res.send(req.user);
 });
 
-auth.on('error', function(req, res, data) {
-  console.log(JSON.stringify(data));
-  res.send('hmm');
-});
-var google = auth.createServer({
-  'service': "google",
-  'id': gconf.appId,
-  'secret': gconf.seceret
-});
-
-app.get('/', routes.index);
-app.get('/users', user.list);
-app.get('/auth/:service', auth.app);
+/*
+ * MAIN
+ */
+db.connect(['mongodb://', conf.get('db').host, conf.get('db').name].join(''));
 
 http.createServer(app).listen(app.get('port'), function(){
   console.log("Express server listening on port " + app.get('port'));
 });
+
