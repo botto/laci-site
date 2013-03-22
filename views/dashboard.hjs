@@ -1,4 +1,4 @@
-{{> header}}
-{{> start_page}}
+{{> l_header}}
+{{> l_page_top}}
   <p>Welcome to {{user.dbuser.gid}}</p>
-{{> footer}}
+{{> l_footer}}

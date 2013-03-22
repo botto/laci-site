@@ -6,6 +6,7 @@
 var express = require('express')
   , util = require('util')
   , _ = require('underscore')
+  , h4e = require('h4e')
   , routes = require('./routes')
   , http = require('http')
   , path = require('path')
@@ -84,6 +85,8 @@ passport.use(new GoogleStrategy({
   }
 ));
 
+
+
 /*
  * EXPRESS
  */
@@ -91,8 +94,8 @@ var app = express();
 
 app.configure(function(){
   app.set('port', process.env.PORT || 3000);
-  app.set('views', __dirname + '/views');
-  app.set('view engine', 'hjs');
+//  app.set('views', __dirname + '/views');
+//  app.set('view engine', 'hjs');
   app.use(express.favicon());
   app.use(express.logger('dev'));
   app.use(express.bodyParser());
@@ -104,6 +107,15 @@ app.configure(function(){
   app.use(app.router);
   app.use(require('less-middleware')({ src: __dirname + '/public' }));
   app.use(express.static(path.join(__dirname, 'public')));
+});
+
+/*
+ * H4E Setup
+ */
+h4e.setup({
+  app: app,
+  extension: 'hjs',
+  baseDir: 'views',
 });
 
 app.configure('development', function(){
@@ -127,6 +139,10 @@ app.get('/auth/google/return',
 app.get('/dashboard', hasAccess, function(req, res) {
   console.log(req.user);
   res.render('dashboard', {user: req.user});
+});
+
+app.get('/', function(req, res) {
+  res.render('dashboard', {title: 'asd'});
 });
 
 /*
