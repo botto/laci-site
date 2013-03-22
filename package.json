@@ -4,15 +4,15 @@
   "description": "lacis-site ==========",
   "main": "app.js",
   "dependencies": {
-    "underscore": "~1.4.4",
-    "less-middleware": "~0.1.9",
-    "ts3sq": "~0.1.2",
-    "mongoose": "~3.5.7",
-    "express": "~3.1.0",
-    "passport-google": "~0.3.0",
-    "hjs": "~0.0.4",
-    "nconf": "~0.6.7",
-    "passport": "~0.1.16"
+    "underscore": "*",
+    "less-middleware": "*",
+    "ts3sq": "*",
+    "mongoose": "*",
+    "express": "*",
+    "passport-google": "*",
+    "hjs": "*",
+    "nconf": "*",
+    "passport": "*"
   },
   "devDependencies": {},
   "scripts": {

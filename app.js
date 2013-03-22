@@ -5,14 +5,15 @@
 
 var express = require('express')
   , util = require('util')
+  , _ = require('underscore')
   , routes = require('./routes')
   , http = require('http')
   , path = require('path')
   , conf = require('nconf')
   , db = require('mongoose')
-  , schemas = require('./lib/schemas')
+  , models = require('./lib/models')
   , passport = require('passport')
-  , GoogleStrategy = require('passport-google').Strategy;
+  , GoogleStrategy = require('passport-google-oauth').OAuth2Strategy;
 
 /*
  * CONFIG
@@ -28,19 +29,13 @@ conf.defaults({
 });
 
 /*
- * MODELS
+ * Simple access checker. No magic
  */
-for (var model in schemas) {
-  if (schemas.hasOwnProperty(model)) {
-    db.model(model, new db.Schema(schemas[model]));
+var hasAccess = function(req, res, next) {
+  var access = req.user.dbuser.access.web;
+  if(_.contains(access[req.method.toLowerCase()], req.url) === true) {
+    next();
   }
-}
-
-/*
- * AUTH
- */
-var loggedIn = function(req, res, next) {
-  if (req.isAuthenticated()) { return next(); }
 }
 
 passport.serializeUser(function(user, done) {
@@ -52,13 +47,40 @@ passport.deserializeUser(function(obj, done) {
 });
 
 passport.use(new GoogleStrategy({
-    returnURL: 'http://local.lacis.org:3000/auth/google/return',
-    realm: 'http://local.lacis.org:3000/'
+    clientID: conf.get('google').appId,
+    clientSecret: conf.get('google').secret,
+    callbackURL: conf.get('google').returnURL,
   },
-  function (ident, profile, done) {
-    process.nextTick(function () {
-      return done(null, profile);
-    });
+  function (accessToken, tokenRefresh, profile, done) {
+    models.user.findOne({gid: profile._json.id}, 
+      function(err, dbuser) {
+        if (err){
+          console.log('oh noes');
+          console.log(err);
+        }
+        else {
+          if (null !== dbuser && profile._json.id === dbuser.gid) {
+            user = profile._json;
+            user.dbuser = dbuser;
+            done(null, user);
+          }
+          else {
+            var newUser = new models.user({gid: profile._json.id});
+            newUser.save(function(err) {
+              if (err) {
+                console.log('oh noes2');
+                console.log(err);
+              }
+              else {
+                user = profile._json;
+                user.dbuser = newUser;
+                done(null, user);
+              }
+            });
+          }
+        }
+      }
+  );
   }
 ));
 
@@ -88,29 +110,23 @@ app.configure('development', function(){
   app.use(express.errorHandler());
 });
 
-app.get('/auth/google',
-  passport.authenticate('google', {failureRedirect: '/'}),
-  function (req, res) {
-    //res.redirect('/dashboard');
-  }
-);
+app.get('/auth/google', passport.authenticate('google', { 
+  scope: [
+  //'https://www.googleapis.com/auth/userinfo.profile',
+  'https://www.googleapis.com/auth/userinfo.email'
+  ] 
+}));
 
 app.get('/auth/google/return',
   passport.authenticate('google', { failureRedirect: '/' }),
   function(req, res) {
-    var userModel = db.model('user');
-    var guser = new userModel({gaccount: req.user.emails[0].value});
-    guser.save(function(err) {
-      if (err) {
-        console.log('oh noes');
-      }
-    });
-    //res.redirect('/dashboard');
+    res.redirect('/dashboard');
   }
 );
 
-app.get('/dashboard', loggedIn, function(req, res) {
-  res.send(req.user);
+app.get('/dashboard', hasAccess, function(req, res) {
+  console.log(req.user);
+  res.render('dashboard', {user: req.user});
 });
 
 /*
