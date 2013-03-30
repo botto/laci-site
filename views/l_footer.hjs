@@ -1,2 +1,5 @@
-  </body>
+<script type="text/javascript" src="components/jquery/jquery.min.js"></script>
+<script type="text/javascript" src="js/functions.js"></script>
+<script type="text/javascript" src="js/laci.js"></script>
+</body>
 </html>

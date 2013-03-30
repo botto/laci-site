@@ -10,6 +10,7 @@ var express = require('express')
   , routes = require('./routes')
   , http = require('http')
   , path = require('path')
+  , fs = require('fs')
   , conf = require('nconf')
   , db = require('mongoose')
   , models = require('./lib/models')
@@ -118,10 +119,14 @@ h4e.setup({
   baseDir: 'views',
 });
 
+
 app.configure('development', function(){
   app.use(express.errorHandler());
 });
 
+/*
+ * Routes
+ */
 app.get('/auth/google', passport.authenticate('google', { 
   scope: [
   //'https://www.googleapis.com/auth/userinfo.profile',
@@ -137,13 +142,17 @@ app.get('/auth/google/return',
 );
 
 app.get('/dashboard', hasAccess, function(req, res) {
-  console.log(req.user);
   res.render('dashboard', {user: req.user});
 });
 
 app.get('/', function(req, res) {
-  res.render('dashboard', {title: 'asd'});
+  h4e.ract('.');
+  res.render('index', {title: "lAcIs Research"});
 });
+
+app.get('/b_images.json', function(req, res) {
+});
+
 
 /*
  * MAIN

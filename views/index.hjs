@@ -1,11 +1,40 @@
-<!DOCTYPE html>
-<html>
-  <head>
-    <title>{{ title }}</title>
-    <link rel='stylesheet' href='/stylesheets/style.css' />
-  </head>
-  <body>
-    <h1>{{ title }}</h1>
-    <p>Welcome to {{ title }}</p>
-  </body>
-</html>
+{{> l_header }}
+<div class="container">
+  <div class="sixteen columns top">
+    <h1 class="remove-bottom">laci servers</h1>
+    {{#hasErrors}}
+      <section id="error_msgs">
+        <ul>
+          {{#errorMsgs}}
+            <li>{{msg}}</li>
+          {{/errorMsgs}}
+        </ul>
+      </section>
+    {{/hasErrors}}
+  </div>
+  <div class="one-third column">
+    <h2>minecraft</h2>
+    <div class="serverDetails">
+      connection<br />
+      {{minecraft.serverName}}:{{minecraft.serverPort}}
+    </div>
+    <form name="minecraft">
+      <label for="minecraft">minecraft username</label>
+      <input name="minecraft" type="text" />
+    </form>
+  </div>
+  <div class="one-third column">
+    <h2>teamspeak</h2>
+    <div class="serverdetails">
+      connection <br />
+      {{teamspeak.serverName}}:{{teamspeak.serverPort}}
+    </div>
+    <form name="teamspeak">
+      <button name="getTSToken" type="button">New Token</button>
+    </form>
+  </div>
+  <div class="one-third column">
+  </div>
+
+</div><!-- container -->
+{{> l_footer }}
