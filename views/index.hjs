@@ -1,7 +1,7 @@
 {{> l_header }}
 <div class="container">
   <div class="sixteen columns top">
-    <h1 class="remove-bottom">laci servers</h1>
+    <h1 class="remove-bottom">{{title}}</h1>
     {{#hasErrors}}
       <section id="error_msgs">
         <ul>

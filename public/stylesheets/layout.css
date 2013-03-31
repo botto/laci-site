@@ -24,6 +24,7 @@ h1 {
   font-size: 4em;
 }
 
+/*Responsive imgs*/
 img {
   max-width: 100%;
   height: auto;
@@ -60,6 +61,10 @@ img {
   animation-iteration-count: infinite;
   animation-duration: 10s;
   animation-direction: alternate;
+}
+
+.container {
+  background: rgba(100,100,100,0.4);
 }
 
 /* #Page Styles

@@ -47,19 +47,5 @@ var laciFunc = {};
       else        
         Settings.windowHasFocus = this[hidden] ? false : true;
     }
-
-    //Guess this could be a jQuery plugin
-    laciFunc.randomBackgroundImage = function (e) {
-      if (null === Settings.backgroundImages) {
-        $.get('/b_images.json', function(data) {
-          Settings.backgroundImages = data;
-          $(e).attr('src', [Settings.backgroundImages.base, '/', Settings.backgroundImages.f[Math.floor(Math.random()*Settings.backgroundImages.f.length)]].join(''));
-        });
-      }
-      else {
-        $(e).attr('src', [Settings.backgroundImages.base, '/', Settings.backgroundImages.f[Math.floor(Math.random()*Settings.backgroundImages.f.length)]].join(''));
-      }
-    };
-
   });
 }(jQuery)));

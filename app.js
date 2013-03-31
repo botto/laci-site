@@ -4,16 +4,20 @@
  */
 
 var express = require('express')
-  , util = require('util')
+  , app = express()
+  , http = require('http')
+  , server = http.createServer(app)
+  , io = require('socket.io').listen(server)
+  , laci = require('laci')
   , _ = require('underscore')
   , h4e = require('h4e')
   , routes = require('./routes')
-  , http = require('http')
   , path = require('path')
   , fs = require('fs')
   , conf = require('nconf')
   , db = require('mongoose')
   , models = require('./lib/models')
+  , themeVals = require('./lib/themeVals')
   , passport = require('passport')
   , GoogleStrategy = require('passport-google-oauth').OAuth2Strategy;
 
@@ -28,6 +32,11 @@ conf.defaults({
   'sqHost': 'localhost',
   'sqPort': '10011',
   'sqUser': 'serveradmin'
+});
+
+laci.setup({
+  imgFolder: 'public/images/randomImages',
+  pubImgFolder: 'images/randomImages'
 });
 
 /*
@@ -91,7 +100,6 @@ passport.use(new GoogleStrategy({
 /*
  * EXPRESS
  */
-var app = express();
 
 app.configure(function(){
   app.set('port', process.env.PORT || 3000);
@@ -110,6 +118,7 @@ app.configure(function(){
   app.use(express.static(path.join(__dirname, 'public')));
 });
 
+
 /*
  * H4E Setup
  */
@@ -119,7 +128,6 @@ h4e.setup({
   baseDir: 'views',
 });
 
-
 app.configure('development', function(){
   app.use(express.errorHandler());
 });
@@ -127,6 +135,7 @@ app.configure('development', function(){
 /*
  * Routes
  */
+
 app.get('/auth/google', passport.authenticate('google', { 
   scope: [
   //'https://www.googleapis.com/auth/userinfo.profile',
@@ -147,10 +156,15 @@ app.get('/dashboard', hasAccess, function(req, res) {
 
 app.get('/', function(req, res) {
   h4e.ract('.');
-  res.render('index', {title: "lAcIs Research"});
+  res.render('index', {values: themeVals});
 });
 
-app.get('/b_images.json', function(req, res) {
+
+//Set up our sockets
+io.sockets.on('connection', function(socket) {
+  laci.getAllImgs(function(b_imgs) {
+    socket.emit('b_imgs', b_imgs); 
+  });
 });
 
 
@@ -159,7 +173,7 @@ app.get('/b_images.json', function(req, res) {
  */
 db.connect(['mongodb://', conf.get('db').host, conf.get('db').name].join(''));
 
-http.createServer(app).listen(app.get('port'), function(){
+server.listen(app.get('port'), function(){
   console.log("Express server listening on port " + app.get('port'));
 });
 

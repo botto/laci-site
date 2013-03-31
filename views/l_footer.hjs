@@ -1,3 +1,7 @@
+<script src="/socket.io/socket.io.js"></script>
+<script>
+  var socket = io.connect('http://local.lacis.org:3000');
+</script>
 <script type="text/javascript" src="components/jquery/jquery.min.js"></script>
 <script type="text/javascript" src="js/functions.js"></script>
 <script type="text/javascript" src="js/laci.js"></script>
