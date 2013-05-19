@@ -1,4 +1,3 @@
-
 /**
  * Module dependencies.
  */
@@ -8,6 +7,8 @@ var express = require('express')
   , http = require('http')
   , server = http.createServer(app)
   , io = require('socket.io').listen(server)
+  , AWS = require('aws-sdk')
+  //, mqc = require('amqp').createConnection({host:'localhost'})
   , laci = require('laci')
   , _ = require('underscore')
   , h4e = require('h4e')
@@ -19,7 +20,15 @@ var express = require('express')
   , models = require('./lib/models')
   , themeVals = require('./lib/themeVals')
   , passport = require('passport')
+  , util = require('util')
   , GoogleStrategy = require('passport-google-oauth').OAuth2Strategy;
+
+var s = null
+  , ready = {}
+  , mc = {
+    heartBeatId: null,
+    heartBeat: null
+  };
 
 /*
  * CONFIG
@@ -33,6 +42,9 @@ conf.defaults({
   'sqPort': '10011',
   'sqUser': 'serveradmin'
 });
+
+AWS.config.update(conf.get('aws'));
+var sqs = new AWS.SQS(conf.get('aws'));
 
 laci.setup({
   imgFolder: 'public/images/randomImages',
@@ -63,7 +75,7 @@ passport.use(new GoogleStrategy({
     callbackURL: conf.get('google').returnURL,
   },
   function (accessToken, tokenRefresh, profile, done) {
-    models.user.findOne({gid: profile._json.id}, 
+    models.user.findOne({gid: profile._json.id},
       function(err, dbuser) {
         if (err){
           console.log('oh noes');
@@ -136,11 +148,11 @@ app.configure('development', function(){
  * Routes
  */
 
-app.get('/auth/google', passport.authenticate('google', { 
+app.get('/auth/google', passport.authenticate('google', {
   scope: [
   //'https://www.googleapis.com/auth/userinfo.profile',
   'https://www.googleapis.com/auth/userinfo.email'
-  ] 
+  ]
 }));
 
 app.get('/auth/google/return',
@@ -150,8 +162,15 @@ app.get('/auth/google/return',
   }
 );
 
-app.get('/dashboard', hasAccess, function(req, res) {
-  res.render('dashboard', {user: req.user});
+app.get('/dashboard', function(req, res) {
+  themeVals = _.extend({
+    minecraft: {
+      serverName: 'asd',
+      serverPort: 'qwe'
+    }},
+    themeVals
+  );
+  res.render('dashboard', {values: themeVals});
 });
 
 app.get('/', function(req, res) {
@@ -160,13 +179,105 @@ app.get('/', function(req, res) {
 });
 
 
+//Set up our queues
+var mq = conf.get('aws')['mq'];
+var mc_stdIn = sqs.client.createQueue({QueueName: [mq['prefix'], mq['queues']['mc_stdIn']].join('')});
+
 //Set up our sockets
 io.sockets.on('connection', function(socket) {
-  laci.getAllImgs(function(b_imgs) {
-    socket.emit('b_imgs', b_imgs); 
+  var mc_stdOut = sqs.client.createQueue({QueueName: [mq['prefix'], mq['queues']['mc_stdOut']].join('')}, function(err, data) {
+    setInterval(function() {
+      queueUrl = data.QueueUrl;
+      sqs.client.recevieMessage({QueueUrl: queueUrl}, function(err, data) {
+        socket.emit('mc_stdOut', data);
+        sqs.client.deleteMessage({QueueUrl: queueUrl, ReceiptHandel: data.ReceiptHandle});
+      });
+    },
+    2000)
+
   });
+  socket.on('mc_stdin', function(d) {
+  });
+  /*laci.getAllImgs(function(b_imgs) {
+    socket.emit('b_imgs', b_imgs);
+  });*/
 });
 
+
+
+
+//Check if necessary queues exit
+/*sqs.client.listQueues({QueueNamePrefix: conf.get('queuePrefix')}, function(err, d) {
+  if (err) {
+    console.log(err);
+  }
+  else {
+    for (q in d.QueuesUrls) {
+      availQueues.push((d.QueueUrls[q].substring(d.QueueUrls[q].lastIndexOf('/')+1, d.QueueUrls[q].length)));
+    }
+    //Get the queues defined in the conf
+    var defQueues = conf.get('queues').queueNames;
+    //If there is a diff, lets figure out what
+    console.log(d.QueueUrls);
+    console.log(defQueues);
+    if (defQueues.length - d.QueueUrls.length) {
+      //Container for the queues that AWS has
+      var availQueues = [];
+      console.log(availQueues);
+      console.log(_.difference(defQueues, availQueues));
+      //console.log(conf.get('queusRequired'));
+    }
+      //console.log(util.inspect(d))
+  }
+});*/
+
+/*mqc.on('ready',function() {
+  //main_queue_ready is need as other async events do not require it but will use it
+  main_queue_ready = true;
+
+  //Heartbeat messages from the MC server
+  mqc.queue('mc_heartbeat', function(q) {
+    q.subscribe(function(d) {
+      //Set up the heartbeat checker once we have the first one
+      mc.heartBeat = d.heartBeat;
+      if (null === mc.heartBeatId) {
+        //If a new heartbeat is not received within heartBeatCheckInt+1 then
+        mc.heartBeatId = setInterval(function() {
+          if ((Date.now() - mc.heartBeat) > conf.get('mc').heartBeatCheckInt) {
+            if (null !== s) {
+              s.emit('mc_dead', Date.now() - mc.heartBeat);
+            }
+            mc.alive = false;
+          }
+          else {
+            mc.alive = true;
+          }
+        }, conf.get('mc').heartBeatCheckInt+1000);
+      }
+      if (null !== s && 'object' === typeof(s)) {
+        s.emit('mc_heartbeat', d.heartBeat);
+      }
+    });
+  });
+
+  mqc.queue('mc_stdout', function(q) {
+    q.subscribe(function(d){
+      if (null !== s)  {
+        s.emit('mc_stdout', d.data.toString());
+      }
+      console.log(d.data.toString());
+    });
+  });
+  mqc.queue('mc_stderr', function(q) {
+    q.subscribe(function(d){
+      if (null !== s)  {
+        s.emit('mc_stderr', d.data.toString());
+      }
+      console.log(d.data.toString());
+    });
+  });
+});
+*/
 
 /*
  * MAIN
