@@ -44,7 +44,7 @@ conf.defaults({
 });
 
 AWS.config.update(conf.get('aws'));
-var sqs = new AWS.SQS(conf.get('aws'));
+var sqs = new AWS.SQS();
 
 laci.setup({
   imgFolder: 'public/images/randomImages',
@@ -180,27 +180,57 @@ app.get('/', function(req, res) {
 
 
 //Set up our queues
-var mq = conf.get('aws')['mq'];
-var mc_stdIn = sqs.client.createQueue({QueueName: [mq['prefix'], mq['queues']['mc_stdIn']].join('')});
-
+var mc_stdIn;
+var mc_stdOut;
+var mc_stdErr;
 //Set up our sockets
 io.sockets.on('connection', function(socket) {
-  var mc_stdOut = sqs.client.createQueue({QueueName: [mq['prefix'], mq['queues']['mc_stdOut']].join('')}, function(err, data) {
-    setInterval(function() {
-      queueUrl = data.QueueUrl;
-      sqs.client.recevieMessage({QueueUrl: queueUrl}, function(err, data) {
-        socket.emit('mc_stdOut', data);
-        sqs.client.deleteMessage({QueueUrl: queueUrl, ReceiptHandel: data.ReceiptHandle});
+  console.log({QueueName: [conf.get('aws')['mqPrefix'], 'mc_stdOut'].join('')});
+  mc_stdOut = sqs.client.createQueue({QueueName: [conf.get('aws')['mqPrefix'], 'mc_stdOut'].join('')}, function(err, data) {
+    setInterval(function(queueUrl) {
+      sqs.client.receiveMessage({QueueUrl: queueUrl}, function(err, msg) {
+        if (typeof msg.Messages !== 'undefined') {
+          for (var i = 0; i < msg.Messages.length; i++) {
+            var currentMsg = msg.Messages[i];
+            socket.emit('mc_stdOut', currentMsg.Body);
+            sqs.client.deleteMessage({QueueUrl: queueUrl, ReceiptHandle: currentMsg.ReceiptHandle}, function(err, d) {
+              if(err) {
+                console.log(err);
+              }
+            });
+          }
+        }
       });
-    },
-    2000)
+    }, 2000, data.QueueUrl);
+  });
 
+  mc_stdErr = sqs.client.createQueue({QueueName: [conf.get('aws')['mqPrefix'], 'mc_stdErr'].join('')}, function(err, data) {
+    setInterval(function(queueUrl) {
+      sqs.client.receiveMessage({QueueUrl: queueUrl}, function(err, msg) {
+        if (typeof msg.Messages !== 'undefined') {
+          for (var i = 0; i < msg.Messages.length; i++) {
+            var currentMsg = msg.Messages[i];
+            socket.emit('mc_stdErr', currentMsg.Body);
+            sqs.client.deleteMessage({QueueUrl: queueUrl, ReceiptHandle: currentMsg.ReceiptHandle}, function(err, d) {
+              if(err) {
+                console.log(err);
+              }
+            });
+          }
+        }
+      });
+    }, 2000, data.QueueUrl);
   });
-  socket.on('mc_stdin', function(d) {
+
+  socket.on('mc_stdIn', function(d) {
+    sqs.client.createQueue({QueueName: [conf.get('aws')['mqPrefix'], 'mc_stdIn'].join('')}, function(err, qd) {
+      sqs.client.sendMessage({QueueUrl: qd.QueueUrl, MessageBody: d}, function(err, response) {
+        if (err) {
+          console.log(err);
+        }
+      });
+    });
   });
-  /*laci.getAllImgs(function(b_imgs) {
-    socket.emit('b_imgs', b_imgs);
-  });*/
 });
 
 
