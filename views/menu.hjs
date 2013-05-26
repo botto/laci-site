@@ -1,0 +1,7 @@
+<nav>
+  <ul>
+    <li class="teamspeak"><a href="#">teamspeak</a></li>
+    <li class="minecraft"><a href="#">minecraft</a></li>
+    <li class="account"><a href="#">account</a></li>
+  </ul>
+</nav>
