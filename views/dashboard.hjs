@@ -1,4 +1,29 @@
-{{> l_header}}
-{{> l_page_top}}
-  <p>Welcome to {{user.dbuser.gid}}</p>
-{{> l_footer}}
+{{> l_header }}
+<div class="container">
+  {{#hasErrors}}
+    <div class="sixteen columns top">
+      <section id="error_msgs">
+        <ul>
+          {{#errorMsgs}}
+            <li>{{msg}}</li>
+          {{/errorMsgs}}
+        </ul>
+      </section>
+    </div>
+  {{/hasErrors}}
+  <div id="menu-wrapper" class="three columns sidebar">
+    {{> menu}}
+  </div>
+  <div class="offset-by-one twelve columns">
+    <h2>minecraft</h2>
+    <div class="serverDetails">
+      connection <span class="serverName">{{minecraft.serverName}}</span><span class="serverPort">{{minecraft.serverPort}}</span>
+    </div>
+    <form name="minecraft">
+      <label for="minecraft">minecraft username</label>
+      <input name="minecraft" type="text" />
+    </form>
+  </div>
+
+</div><!-- container -->
+{{> l_footer }}

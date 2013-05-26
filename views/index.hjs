@@ -13,15 +13,6 @@
     {{/hasErrors}}
   </div>
   <div class="one-third column">
-    <h2>minecraft</h2>
-    <div class="serverDetails">
-      connection<br />
-      {{minecraft.serverName}}:{{minecraft.serverPort}}
-    </div>
-    <form name="minecraft">
-      <label for="minecraft">minecraft username</label>
-      <input name="minecraft" type="text" />
-    </form>
   </div>
   <div class="one-third column">
     <h2>teamspeak</h2>

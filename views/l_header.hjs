@@ -32,5 +32,3 @@
 
 </head>
 <body>
-  <img class="background-image-changer odd" src="{{images.initialOdd}}">
-  <img class="background-image-changer even" src="{{images.initialEven}}">

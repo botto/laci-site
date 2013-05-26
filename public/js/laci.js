@@ -1,6 +1,6 @@
 (!(function($) {
   $(function() {
-    var backgroundImgs;
+    var backgroundImgs, mc_lastHeartbeat;
     function listener(e) {
       if (Settings.windowHasFocus === true && e.type === "animationiteration") {
         if (Math.round(e.elapsedTime)%20 > 0) {
@@ -13,6 +13,22 @@
         }
       }
     }
+
+    socket.on('mc_dead', function(t) {
+      console.log(t);
+    });
+
+    socket.on('mc_stdOut', function(d) {
+      console.log(d);
+    });
+
+    socket.on('mc_stdErr', function(d) {
+      console.log(d);
+    });
+
+    socket.on('mc_heartbeat', function(t) {
+      mc_lastHeartbeat = t;
+    });
 
     socket.on('b_imgs', function (data) {
       backgroundImgs = data;

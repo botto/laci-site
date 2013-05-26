@@ -1,3 +1,5 @@
+@import "colours";
+
 /*
 * Skeleton V1.2
 * Copyright 2011, Dave Gamache
@@ -6,49 +8,56 @@
 * http://www.opensource.org/licenses/mit-license.php
 * 6/20/2012
 */
+
 /* Table of Content
 ==================================================
 	#Site Styles
 	#Page Styles
 	#Media Queries
 	#Font-Face */
+
 /* #Site Styles
 ================================================== */
-html,
-body {
+html, body {
   height: 100%;
-  background-color: #36393b;
+  background-color: @dark-bk;
 }
+
 h1 {
   font-size: 4em;
 }
+
 label {
-  color: #eee6ab;
+  color: @text-light;
 }
+
 /*Responsive imgs*/
 img {
   max-width: 100%;
   height: auto;
 }
+
 .background-image-changer {
   position: absolute;
   left: 0;
   top: 0;
 }
+
 @keyframes imgFadeInOut {
   0% {
-    opacity: 1;
+    opacity:1;
   }
   45% {
-    opacity: 1;
+    opacity:1;
   }
   55% {
-    opacity: 0;
+    opacity:0;
   }
   100% {
-    opacity: 0;
+    opacity:0;
   }
 }
+
 .background-image-changer.even {
   animation-name: imgFadeInOut;
   animation-timing-function: ease-in-out;
@@ -56,60 +65,62 @@ img {
   animation-duration: 10s;
   animation-direction: alternate;
 }
+
 /* #Nav
 ================================================== */
 nav {
   padding-top: 2em;
+  a, a:hover, a:visited {
+    color: @text-dark;
+    text-decoration: none;
+    font-size: 1.3em;
+  }
 }
-nav a,
-nav a:hover,
-nav a:visited {
-  color: #7f7d6e;
-  text-decoration: none;
-  font-size: 1.3em;
-}
+
+
 /* #Columns Layout
 ================================================== */
 .container {
-  background: #36393b;
+  background: @dark-bk;
   padding: 4em 0 0 5em;
   margin: 0;
 }
+
 /* #Server Details
 ================================================== */
 .serverDetails {
-  color: #eee6ab;
+  color: @text-light;
 }
+
 /* #Page Styles
 ================================================== */
+
 /* #Media Queries
 ================================================== */
+
 /* Smaller than standard 960 (devices and browsers) */
-@media only screen and (max-width: 959px) {
-  
-}
+@media only screen and (max-width: 959px) {}
+
 /* Tablet Portrait size to standard 960 (devices and browsers) */
-@media only screen and (min-width: 768px) and (max-width: 959px) {
-  
-}
+@media only screen and (min-width: 768px) and (max-width: 959px) {}
+
 /* All Mobile Sizes (devices and browser) */
-@media only screen and (max-width: 767px) {
-  
-}
+@media only screen and (max-width: 767px) {}
+
 /* Mobile Landscape Size to Tablet Portrait (devices and browsers) */
-@media only screen and (min-width: 480px) and (max-width: 767px) {
-  
-}
+@media only screen and (min-width: 480px) and (max-width: 767px) {}
+
 /* Mobile Portrait Size to Mobile Landscape Size (devices and browsers) */
-@media only screen and (max-width: 479px) {
-  
-}
+@media only screen and (max-width: 479px) {}
+
+
 /* #Font-Face
 ================================================== */
 /* 	This is the proper syntax for an @font-face file
 Just create a "fonts" folder at the root,
 copy your FontName into code below and remove
 comment brackets */
+
 /*	@font-face {
 font-family: 'FontName';
 src: url('../fonts/FontName.eot');
